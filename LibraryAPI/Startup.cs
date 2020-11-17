@@ -37,7 +37,7 @@ namespace LibraryAPI
 
             services.AddDbContext<LibraryDataContext>(options =>
             {
-                // TODO: Get rid of this hard-coded connection string before an infrastructure person burns down my house.
+                // TODONE: Get rid of this hard-coded connection string before an infrastructure person burns down my house.
                 options.UseSqlServer(Configuration.GetConnectionString("library"));
             });
 
@@ -51,8 +51,11 @@ namespace LibraryAPI
             services.AddSingleton<MapperConfiguration>(mapperConfiguration);
             services.AddSingleton<IMapper>(mapper);
 
+            services.AddScoped<ILookupBooks, EfSqlBooks>();
+            services.AddScoped<IBookCommands, EfSqlBooks>();
+
             services.AddSwaggerGen(c =>
-           {
+            {
                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                {
                    Title = "Library API for BES 100",
@@ -67,7 +70,7 @@ namespace LibraryAPI
                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                c.IncludeXmlComments(xmlPath);
-           });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
