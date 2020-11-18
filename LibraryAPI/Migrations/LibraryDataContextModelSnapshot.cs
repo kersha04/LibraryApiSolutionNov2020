@@ -65,6 +65,27 @@ namespace LibraryAPI.Migrations
 
                     b.ToTable("Books");
                 });
+
+            modelBuilder.Entity("LibraryAPI.Data.BookReservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("BooksReserved")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("For")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reservations");
+                });
 #pragma warning restore 612, 618
         }
     }

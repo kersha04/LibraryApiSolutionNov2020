@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using AutoMapper;
 using LibraryAPI.Data;
 using LibraryAPI.Profiles;
 using LibraryAPI.Services;
+using LibraryAPI.Services.Reservations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RabbitMqUtils;
 
 namespace LibraryAPI
 {
@@ -31,7 +34,12 @@ namespace LibraryAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); // serialize the enum as a string insterad of int
+                    options.JsonSerializerOptions.IgnoreNullValues = true; //don't serialize nulls, stupid
+                });
 
             services.AddTransient<IProvideServerStatusInformation, HealthMonitoringApiServerStatus>();
 
@@ -54,8 +62,11 @@ namespace LibraryAPI
             services.AddScoped<ILookupBooks, EfSqlBooks>();
             services.AddScoped<IBookCommands, EfSqlBooks>();
             services.AddScoped<ILookupOnCallDevelopers, RedisOnCallLookup>();
-
             services.AddHostedService<CachePrimer>();
+
+            services.AddRabbit(Configuration);
+            services.AddScoped<IProcessBookReservations, RabbitBookReservationProcessor>();
+
             services.AddDistributedRedisCache(options =>
             {
                 options.Configuration = Configuration.GetConnectionString("redis");
